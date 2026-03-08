@@ -1,0 +1,5 @@
+faster-whisper
+supabase
+python-dotenv
+pyaudio
+speechrecognition
