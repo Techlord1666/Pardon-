@@ -1,42 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Church Projector</title>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <meta charset="UTF-8">
+    <title>Voice Bible Display</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Supabase SDK -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-    <div id="app">
-        <h1 id="ref">Loading...</h1>
-        <p id="content">Waiting for pastor to speak...</p>
-        <div id="ver"></div>
+
+    <!-- Animated Background Layer -->
+    <div class="aura-container">
+        <div class="aura-blob"></div>
+        <div class="aura-blob cyan"></div>
+    </div>
+
+    <!-- Main Content Layer -->
+    <div id="display-layer">
+        <div id="reference">John 3:16</div>
+        <div id="verse-text">For God so loved the world, that he gave his only begotten Son...</div>
+    </div>
+
+    <!-- Listening Indicator (Subtle Mic Icon) -->
+    <div class="mic-status">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="white">
+            <path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3z"/>
+            <path d="M17 11c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/>
+        </svg>
     </div>
 
     <script>
-        const supabaseUrl = 'https://ucagsjvcqwxumewjfexc.supabase.co';
-        const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjYWdzanZjcXd4dW1ld2pmZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MjIyNjgsImV4cCI6MjA4ODQ5ODI2OH0.J_uog2T498i8glUm5IVfeaJ2CSfRIUhZV2q_9K3Tyd4';
-        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
-        async function fetchInitial() {
-            const { data } = await supabase.from('display_state').select('*').single();
-            updateUI(data);
-        }
+        const SUPABASE_URL = 'https://ucagsjvcqwxumewjfexc.supabase.co';
+        const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVjYWdzanZjcXd4dW1ld2pmZXhjIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI5MjIyNjgsImV4cCI6MjA4ODQ5ODI2OH0.J_uog2T498i8glUm5IVfeaJ2CSfRIUhZV2q_9K3Tyd4';
+        const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
         function updateUI(data) {
-            document.getElementById('ref').innerText = data.reference;
-            document.getElementById('content').innerText = data.content;
-            document.getElementById('ver').innerText = data.version;
+            // Apply Fade-Out/In effect for smooth transition
+            const layer = document.getElementById('display-layer');
+            layer.style.opacity = 0;
+            
+            setTimeout(() => {
+                document.getElementById('reference').innerText = data.reference;
+                document.getElementById('verse-text').innerText = data.content;
+                layer.style.transition = "opacity 0.8s ease";
+                layer.style.opacity = 1;
+            }, 400);
         }
 
-        // REALTIME SUBSCRIPTION
+        // Subscribe to Realtime Updates
         supabase
-            .channel('schema-db-changes')
-            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'display_state' }, 
+            .channel('bible-changes')
+            .on('postgres_changes', 
+                { event: 'UPDATE', schema: 'public', table: 'display_state' }, 
                 payload => updateUI(payload.new)
             )
             .subscribe();
-
-        fetchInitial();
     </script>
 </body>
 </html>
