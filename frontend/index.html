@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Church Projector</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <h1 id="ref">Loading...</h1>
+        <p id="content">Waiting for pastor to speak...</p>
+        <div id="ver"></div>
+    </div>
+
+    <script>
+        const supabaseUrl = 'YOUR_SUPABASE_URL';
+        const supabaseKey = 'YOUR_SUPABASE_KEY';
+        const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+        async function fetchInitial() {
+            const { data } = await supabase.from('display_state').select('*').single();
+            updateUI(data);
+        }
+
+        function updateUI(data) {
+            document.getElementById('ref').innerText = data.reference;
+            document.getElementById('content').innerText = data.content;
+            document.getElementById('ver').innerText = data.version;
+        }
+
+        // REALTIME SUBSCRIPTION
+        supabase
+            .channel('schema-db-changes')
+            .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'display_state' }, 
+                payload => updateUI(payload.new)
+            )
+            .subscribe();
+
+        fetchInitial();
+    </script>
+</body>
+</html>
