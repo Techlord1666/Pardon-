@@ -1,0 +1,11 @@
+bible-voice-system/
+├── .gitignore
+├── README.md
+├── requirements.txt
+├── .env                 <-- Store your API keys here
+├── backend/
+│   ├── main.py          # Voice listener & Supabase updater
+│   └── parser.py        # Reference extraction logic
+└── frontend/
+    ├── index.html       # The Projector Screen
+    └── style.css
